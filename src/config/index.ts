@@ -1,26 +1,22 @@
-import merge from "lodash.merge";
-
-// make sure NODE_ENV is set
-process.env.NODE_ENV = process.env.NODE_ENV || "development";
-
-const stage = process.env.STAGE || "local";
-let envConfig;
-
-// dynamically require each config depending on the stage we're in
-if (stage === "production") {
-  envConfig = require("./prod").default;
-} else if (stage === "testing") {
-  envConfig = require("./testing").default;
-} else {
-  envConfig = require("./local").default;
+interface envType {
+  NODE_ENV: string;
+  PORT: string;
 }
 
-export default merge({
-    stage,
-    env: process.env.NODE_ENV,
-    port: 3001,
-    secrets: {
-      jwt: process.env.JWT_SECRET,
-      dbUrl: process.env.DATABASE_URL
+export const Env = (): envType => {
+  return {
+    NODE_ENV: process.env.NODE_ENV ?? '',
+    PORT: process.env.PORT ?? '',
+  };
+};
+
+export const validateEnv = () => {
+  const env = Env() as any;
+  const objects = Object.keys(env);
+  objects.map((item) => {
+    const nom = env[item];
+    if (!nom) {
+      throw Error(`${item} is required`);
     }
-}, envConfig)
+  });
+};

@@ -1,88 +1,39 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://api_desing_v4_i9ki_user:tkaJW2AsP2kqVPlKNyZC4Gjhrp8pjhfM@dpg-cjnotfnjbvhs73836mh0-a.oregon-postgres.render.com/api_desing_v4_i9ki"
+  url      = env("DATABASE_URL")
+}
+
+enum TokenType {
+  CONFIRMATION_EMAIL
+  RESET_PASSWORD
 }
 
 model User {
-  id        String   @id @default(uuid()) //uuid to figure out numbers to increement 
-  createdAt DateTime @default(now())
-  username  String   @unique
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  username  String?  @unique
   password  String
-
-  // userProfile UserProfile?
-  //product   Product[]
-  UserProfile UserProfile[]
-}
-
-enum UPDATE_STATUS {
-  IN_PROGRESS
-  PUBLISHED
-  DRAFT
-}
-
-model UserProfile {
-  id          String   @id @default(uuid()) //uuid to figure out numbers to increement 
-  createdAt   DateTime @default(now())
-  firstname   String   @db.VarChar(255)
-  lsatname    String   @db.VarChar(255)
-  email       String   @unique
-  belongsToId String
-  belongsTo   User     @relation(fields: [belongsToId], references: [id])
-
-  Onboarding Onboarding[]
-}
-
-
-// Onboarding
-model Onboarding {
-  id        String   @id @default(uuid()) //uuid to figure out numbers to increement
-  completed Boolean
+  email     String   @unique
+  verified  Boolean  @default(false)
+  tokens    Token[]
+  updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
-
-  userProfileID String
-  userProfile   UserProfile @relation(fields: [userProfileID], references: [id])
 }
 
-// model Product {
-//   id          String   @id @default(uuid()) //uuid to figure out numbers to increement 
-//   createdAt   DateTime @default(now())
-//   name        String   @db.VarChar(255)
-//   belongsToId String
-//   belongsTo   User     @relation(fields: [belongsToId], references: [id])
-//   Update      Update[]
-// }
-
-// model Update {
-//   id        String        @id @default(uuid()) //uuid to figure out numbers to increement 
-//   createdAt DateTime      @default(now())
-//   updateAt  DateTime
-//   title     String
-//   body      String
-//   status    UPDATE_STATUS @default(IN_PROGRESS)
-//   version   String?
-//   asset     String?
-
-//   productID String
-//   product   Product @relation(fields: [productID], references: [id])
-
-//   UpdatePoint UpdatePoint[]
-// }
-
-// model UpdatePoint {
-//   id        String   @id @default(uuid())
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime
-
-//   name        String @db.VarChar(255)
-//   description String
-
-//   updateID String
-//   update   Update @relation(fields: [updateID], references: [id])
-// }
+model Token {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  expires   DateTime
+  isValid   Boolean   @default(true)
+  type      TokenType
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+}

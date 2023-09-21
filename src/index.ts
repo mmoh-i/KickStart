@@ -1,10 +1,22 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+import http from 'http';
+import { app } from './app';
+import { logger } from './helpers';
 
-import config from './config'
-import app from './server'
+const PORT = process.env.PORT || 80;
 
+process.on('uncaughtException', (error) => {
+  logger.error(`uncaught exception: ${error.message}`);
+  process.exit(1);
+});
 
-app.listen(config.port, () => {
-    console.log(`hello server on http://localhost:${config.port}`)
-})
+process.on('unhandledRejection', (err: Error, promise) => {
+  logger.error(`Error ${err.message}`);
+  server.close(() => process.exit(1));
+});
+const server = http.createServer(app);
+
+server.listen(PORT, () => {
+  logger.info(
+    `server is running in ${process.env.NODE_ENV} mode on port ${PORT}`
+  );
+});
