@@ -1,6 +1,7 @@
-import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+import express from 'express';
 import morgan from 'morgan';
 import listAllRoutes, { Endpoint } from 'express-list-endpoints';
 import Table from 'cli-table';
@@ -12,10 +13,8 @@ import cookieParser from 'cookie-parser';
 import ErrorMiddleware from './middlewares/error';
 import routes from './routes';
 import { Data } from './interface';
-import logger from './helpers/logger';
+import { logger } from './helpers';
 import connectDb from './config/db';
-
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 (async () => {
   connectDb();
