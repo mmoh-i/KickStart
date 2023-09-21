@@ -14,7 +14,6 @@ import routes from './routes';
 import { Data } from './interface';
 import logger from './helpers/logger';
 import connectDb from './config/db';
-import { Env, validateEnv } from './config/index';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -23,14 +22,12 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 })();
 
 const app = express();
-validateEnv();
-const env = Env();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
-if (env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 //set security headers
