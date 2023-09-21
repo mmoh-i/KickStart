@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import userService from '../../services/auth';
 import Jwt from '../../utils/jwt';
 import { asyncHandler } from '../../helpers';
+import { AuthService } from '../../services';
 
 const authController = {
   /**
@@ -13,7 +13,7 @@ const authController = {
    */
 
   register: asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    let user = await userService.register(req.body);
+    let user = await AuthService.register(req.body);
     let { accessToken, refreshToken } = Jwt.generateAccesTokens(user.id);
     // send email verification
     res.status(201).json({ ...user, accessToken, refreshToken });
@@ -28,7 +28,7 @@ const authController = {
    */
 
   login: asyncHandler(async (req: Request, res: Response) => {
-    let user = await userService.login(req.body);
+    let user = await AuthService.login(req.body);
     let { accessToken, refreshToken } = Jwt.generateAccesTokens(user?.id);
     res.status(201).json({ ...user, accessToken, refreshToken });
   }),
