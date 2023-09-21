@@ -5,18 +5,20 @@ export type Data = {
   [key: string]: any;
 };
 
-export type UserResponse = Omit<User, 'password'>;
-
-export type AuthServiceType = {
-  register(body: Omit<User, 'id'>): Promise<UserResponse>;
-  login(data: Pick<User, 'email' | 'password'>): Promise<UserResponse | null>;
-};
-
 export type TokenType = {
   accessToken: string;
   refreshToken: string;
 };
-export type UserJWT = {
+
+export type LoginResponse = Omit<User, 'password'> & TokenType;
+export type RegisterResponse = Omit<User, 'password'> & TokenType;
+
+export type AuthServiceType = {
+  register(body: Omit<User, 'id'>): Promise<LoginResponse>;
+  login(data: Pick<User, 'email' | 'password'>): Promise<LoginResponse | null>;
+};
+
+export type JwtPayload = {
   id: string;
   iat: number;
   exp: number;
@@ -24,5 +26,5 @@ export type UserJWT = {
 };
 
 export interface CustomRequest extends Request {
-  user?: UserJWT; // Define the 'user' property
+  user?: JwtPayload; // Define the 'user' property
 }

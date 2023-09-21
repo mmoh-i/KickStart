@@ -1,15 +1,18 @@
 import { Router } from 'express';
 import AuthValidator from '../validators/user';
-import authController from '../controllers/Auth';
+import { authController } from '../controllers';
 import Validator from '../middlewares/validator';
 
 const router = Router();
 
 router
   .route('/register')
-  .post(Validator.validate(AuthValidator.register()), authController.register);
+  .post(
+    Validator.validate(AuthValidator.register()),
+    authController.register()
+  );
 router
   .route('/login')
-  .post(Validator.validate(AuthValidator.login()), authController.login);
+  .post(Validator.validate(AuthValidator.login()), authController.login());
 
 export default router;

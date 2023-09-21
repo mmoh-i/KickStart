@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomRequest } from '../interface';
-import { Exception } from '../helpers';
+import { Exception, logger } from '../helpers';
 
 class ErrorMiddleware {
   static notFound(req: Request, res: Response, next: NextFunction) {
@@ -23,6 +23,7 @@ class ErrorMiddleware {
         data,
       });
     } else {
+      logger.error(err.message);
       res.status(500).json({
         message: 'Internal Server Error',
         error: 500,

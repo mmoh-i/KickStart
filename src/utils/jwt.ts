@@ -1,7 +1,10 @@
+import { Response } from 'express';
+import { cookieOptions } from './../config/index';
 import { sign, verify } from 'jsonwebtoken';
+import dayjs from 'dayjs';
 
-class Jwt {
-  static generateAccesTokens(id?: string) {
+class JwtUtils {
+  static generateAccessTokens(id?: string) {
     const accessToken = sign({ id }, process.env.JWT_SECRET as string, {
       expiresIn: process.env.JWT_EXPIRE,
     });
@@ -22,4 +25,4 @@ class Jwt {
   }
 }
 
-export default Jwt;
+export default JwtUtils;

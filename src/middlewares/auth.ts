@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { CustomRequest, UserJWT } from '../interface';
+import { CustomRequest, JwtPayload } from '../interface';
 import Jwt from '../utils/jwt';
 import { Exception, asyncHandler } from '../helpers';
 
@@ -17,11 +17,12 @@ class AuthMiddleware {
     } else if (req.cookies.access_token) {
       token = req.cookies.access_token;
     }
+
     try {
       req.user = Jwt.verifyToken(
         token,
         process.env.JWT_SECRET as string
-      ) as UserJWT;
+      ) as JwtPayload;
     } catch (err) {
       res.status(401);
       throw new Error(`Invalid Token`);
@@ -35,7 +36,7 @@ class AuthMiddleware {
     }
     return asyncHandler(
       (req: CustomRequest, res: Response, next: NextFunction) => {
-        if (roles.length && !roles.includes((req.user as UserJWT).role)) {
+        if (roles.length && !roles.includes((req.user as JwtPayload).role)) {
           new Exception('Unauthorized to access this route', 401);
         }
         next();

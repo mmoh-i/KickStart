@@ -1,37 +1,69 @@
 import { Request, Response } from 'express';
-import Jwt from '../../utils/jwt';
-import { asyncHandler } from '../../helpers';
+import JwtUtils from '../../utils/jwt';
+import { Exception, asyncHandler } from '../../helpers';
 import { AuthService } from '../../services';
+import { JwtPayload } from '../../interface';
+import { cookieOptions } from '../../config';
+import dayjs from 'dayjs';
 
-const authController = {
-  /**
-   * @method  POST - register
-   * @desc Feature: signs up the user
-   * @param {object} req Request object
-   * @param {object} res Response object
-   * @returns {object} Json data
-   */
+class AuthController {
+  constructor(private readonly authService: AuthService) {}
+  setCookie(
+    name: 'access_token' | 'refresh_token',
+    res: Response,
+    token: string
+  ) {
+    res.cookie(name, token, {
+      ...cookieOptions,
+      expires:
+        name === 'access_token'
+          ? dayjs().add(1, 'day').toDate()
+          : dayjs().add(30, 'day').toDate(),
+    });
+  }
 
-  register: asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    let user = await AuthService.register(req.body);
-    let { accessToken, refreshToken } = Jwt.generateAccesTokens(user.id);
-    // send email verification
-    res.status(201).json({ ...user, accessToken, refreshToken });
-  }),
+  register() {
+    return asyncHandler(async (req: Request, res: Response) => {
+      const user = await this.authService.register(req.body);
+      this.setCookie('access_token', res, user.accessToken);
+      this.setCookie('refresh_token', res, user.accessToken);
+      res.status(201).json({ data: user, status: true });
+    });
+  }
 
-  /**
-   * @method  POST - login
-   * @desc Feature: log in the user
-   * @param {object} req Request object
-   * @param {object} res Response object
-   * @returns {object} Json data
-   */
+  login() {
+    return asyncHandler(async (req: Request, res: Response) => {
+      let user = await this.authService.login(req.body);
+      this.setCookie('access_token', res, user.accessToken);
+      this.setCookie('refresh_token', res, user.accessToken);
+      res.status(200).json({ ...user });
+    });
+  }
 
-  login: asyncHandler(async (req: Request, res: Response) => {
-    let user = await AuthService.login(req.body);
-    let { accessToken, refreshToken } = Jwt.generateAccesTokens(user?.id);
-    res.status(201).json({ ...user, accessToken, refreshToken });
-  }),
-};
+  refreshToken() {
+    return asyncHandler(async (req: Request, res: Response) => {
+      let { refreshToken } = req.body;
+      const user = JwtUtils.verifyToken(
+        refreshToken,
+        process.env.JWT_SECRETII as string
+      ) as JwtPayload;
 
-export default authController;
+      if (!user) {
+        throw new Exception('Invalid refresh token');
+      }
+      const token = JwtUtils.generateToken(user?.id);
+      this.setCookie('access_token', res, token);
+      res.status(200).json({ accessToken: token });
+    });
+  }
+
+  signOut() {
+    return asyncHandler(async (req, res) => {
+      res.clearCookie('access_token', cookieOptions);
+      res.clearCookie('refresh_token', cookieOptions);
+      return res.status(200).json({ message: 'You successfully logged out' });
+    });
+  }
+}
+
+export default new AuthController(new AuthService());
